@@ -47,7 +47,6 @@ class ACHelper extends Module
                     //Setup Consent for Matomo
                     var _paq = window._paq = window._paq || [];
                     _paq.push(['requireCookieConsent']);
-                    _paq.push(['trackPageView']);
                     
                     //Setup Consent for Google Analytics
                     window.dataLayer = window.dataLayer || [];
@@ -149,6 +148,8 @@ class ACHelper extends Module
     public function hookDisplayBeforeBodyClosingTag($params)
     {
         return "<script type=\"text/javascript\">
+                    _paq.push(['trackPageView']);
+
                     function ACHelperDeleteCookie(name, domain, path) {
                         let cookieString = name + \"=; expires=Thu, 01 Jan 1970 00:00:00 GMT\";
                         if (domain) {
