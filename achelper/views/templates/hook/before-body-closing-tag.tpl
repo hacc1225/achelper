@@ -28,6 +28,7 @@
 						if (currentClass.includes('lgcookieslaw-slider') && currentClass.includes('lgcookieslaw-slider-checked')) {
 							allConsentGranted();
 						}
+						consentObserver.disconnect();
 					}
 				}
 			}
