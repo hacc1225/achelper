@@ -43,7 +43,8 @@ class ACHelper extends Module
 
     public function hookDisplayHeader($params)
     {
-        return $this->context->smarty->fetch($this->local_path.'views/templates/hook/header.tpl');
+        $templateFile = 'module:'.$this->name. '/views/templates/hook/header.tpl';
+        return $this->context->smarty->fetch($templateFile, $this->getCacheId());
     }
 
     public function getContent()
@@ -119,12 +120,16 @@ class ACHelper extends Module
     
     public function hookDisplayBeforeBodyClosingTag($params)
     {
-        $this->context->smarty->assign(array(
-            'TopLevelDomain' => Configuration::get('ACHelper_TopLevelDomain'),
-            'GMeasureID' => Configuration::get('ACHelper_GMeasureID'),
-            'lgcookieslawID' => Configuration::get('ACHelper_lgcookieslawID'),
-        ));
-        return $this->context->smarty->fetch($this->local_path.'views/templates/hook/before-body-closing-tag.tpl');
+        $templateFile = 'module:'.$this->name. '/views/templates/hook/before-body-closing-tag.tpl';
+        $cacheId = $this->getCacheId();
+        if (!$this->isCached($templateFile, $cacheId)) {
+            $this->context->smarty->assign(array(
+                'TopLevelDomain' => Configuration::get('ACHelper_TopLevelDomain'),
+                'GMeasureID' => Configuration::get('ACHelper_GMeasureID'),
+                'lgcookieslawID' => Configuration::get('ACHelper_lgcookieslawID'),
+            ));
+        }
+        return $this->context->smarty->fetch($templateFile, $this->getCacheId());
     }
 
 }
