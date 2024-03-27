@@ -13,6 +13,9 @@
 		'ad_personalization': 'denied',
 		'analytics_storage': 'denied'
 	});
+	{/literal}
+	{if $GA_URL_Passthrough}gtag('set', 'url_passthrough', true);{/if}
+	{if $GA_Ads_Data_Redaction}gtag('set', 'ads_data_redaction', true);{/if}
 
 	//Activate tracking code
 	function allConsentGranted() {
@@ -27,5 +30,4 @@
 			'analytics_storage': 'granted'
 		});
 	}
-	{/literal}
 </script>

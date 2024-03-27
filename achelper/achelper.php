@@ -29,6 +29,8 @@ class ACHelper extends Module
         $this->registerHook('displayHeader') &&
         $this->registerHook('displayBeforeBodyClosingTag') &&
         Configuration::updateValue('ACHelper_GMeasureID', '') &&
+        Configuration::updateValue('ACHelper_GA_URL_Passthrough', '') &&
+        Configuration::updateValue('ACHelper_GA_Ads_Data_Redaction', '') &&
         Configuration::updateValue('ACHelper_TopLevelDomain', '') &&
         Configuration::updateValue('ACHelper_lgcookieslawID', '');
     }
@@ -36,15 +38,11 @@ class ACHelper extends Module
     public function uninstall()
     {
         Configuration::deleteByName('ACHelper_GMeasureID');
+        Configuration::deleteByName('ACHelper_GA_URL_Passthrough');
+        Configuration::deleteByName('ACHelper_GA_Ads_Data_Redaction');
         Configuration::deleteByName('ACHelper_TopLevelDomain');
         Configuration::deleteByName('ACHelper_lgcookieslawID');
         return parent::uninstall();
-    }
-
-    public function hookDisplayHeader($params)
-    {
-        $templateFile = 'module:'.$this->name. '/views/templates/hook/header.tpl';
-        return $this->context->smarty->fetch($templateFile, $this->getCacheId());
     }
 
     public function getContent()
@@ -80,6 +78,43 @@ class ACHelper extends Module
                         'name' => 'ACHelper_GMeasureID'
                     ),
                     array(
+                        'type' => 'checkbox',
+                        'name' => 'ACHelper',
+                        'desc'    => $this->l('When a user arrives at your website from an ad, ad information can '.
+                                            'be attached to the URL or stored in cookies to enhance conversion tracking; '.
+                                            'if storing data is restricted, using URL passthrough allows for improved ad click '.
+                                            'and analytics measurement without cookies.'),
+                        'class' => 't',
+                        'values' => array(
+                            'query' => array(
+                                array(
+                                    'id_option' => 'GA_URL_Passthrough',
+                                    'name' => $this->l('Google Analytics GCLID and DCLID URL Passthrough'),
+                                ),
+                            ),
+                            'id' => 'id_option',
+                            'name' => 'name'
+                        ),
+                    ),
+                    array(
+                        'type' => 'checkbox',
+                        'name' => 'ACHelper',
+                        'desc'    => $this->l('When ads_data_redaction is enabled and ad_storage is denied, '.
+                                            'identifiers in Google Ads and Floodlight tag requests will be redacted, '.
+                                            'and these requests will use a cookieless domain.'),
+                        'class' => 't',
+                        'values' => array(
+                            'query' => array(
+                                array(
+                                    'id_option' => 'GA_Ads_Data_Redaction',
+                                    'name' => $this->l('Google Analytics Ads Data Redaction'),
+                                ),
+                            ),
+                            'id' => 'id_option',
+                            'name' => 'name'
+                        ),
+                    ),
+                    array(
                         'type' => 'text',
                         'label' => $this->l('lgcookieslaw plugin purpose ID'),
                         'class' => 't',
@@ -107,6 +142,8 @@ class ACHelper extends Module
         $helper->token = Tools::getAdminTokenLite('AdminModules');
         $helper->fields_value['ACHelper_TopLevelDomain'] = Configuration::get('ACHelper_TopLevelDomain');
         $helper->fields_value['ACHelper_GMeasureID'] = Configuration::get('ACHelper_GMeasureID');
+        $helper->fields_value['ACHelper_GA_URL_Passthrough'] = Configuration::get('ACHelper_GA_URL_Passthrough');
+        $helper->fields_value['ACHelper_GA_Ads_Data_Redaction'] = Configuration::get('ACHelper_GA_Ads_Data_Redaction');
         $helper->fields_value['ACHelper_lgcookieslawID'] = Configuration::get('ACHelper_lgcookieslawID');
         return $helper->generateForm(array($fields_form));
     }
@@ -115,7 +152,22 @@ class ACHelper extends Module
     {
         Configuration::updateValue('ACHelper_TopLevelDomain', Tools::getValue('ACHelper_TopLevelDomain'));
         Configuration::updateValue('ACHelper_GMeasureID', Tools::getValue('ACHelper_GMeasureID'));
+        Configuration::updateValue('ACHelper_GA_URL_Passthrough', Tools::getValue('ACHelper_GA_URL_Passthrough'));
+        Configuration::updateValue('ACHelper_GA_Ads_Data_Redaction', Tools::getValue('ACHelper_GA_Ads_Data_Redaction'));
         Configuration::updateValue('ACHelper_lgcookieslawID', Tools::getValue('ACHelper_lgcookieslawID'));
+    }
+
+    public function hookDisplayHeader($params)
+    {
+        $templateFile = 'module:'.$this->name. '/views/templates/hook/header.tpl';
+        $cacheId = $this->getCacheId();
+        if (!$this->isCached($templateFile, $cacheId)) {
+            $this->context->smarty->assign(array(
+                'GA_URL_Passthrough' => Configuration::get('ACHelper_GA_URL_Passthrough') == 'on',
+                'GA_Ads_Data_Redaction' => Configuration::get('ACHelper_GA_Ads_Data_Redaction') == 'on',
+            ));
+        }
+        return $this->context->smarty->fetch($templateFile, $cacheId);
     }
     
     public function hookDisplayBeforeBodyClosingTag($params)
@@ -129,7 +181,7 @@ class ACHelper extends Module
                 'lgcookieslawID' => Configuration::get('ACHelper_lgcookieslawID'),
             ));
         }
-        return $this->context->smarty->fetch($templateFile, $this->getCacheId());
+        return $this->context->smarty->fetch($templateFile, $cacheId);
     }
 
 }
