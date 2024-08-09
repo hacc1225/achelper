@@ -3,7 +3,10 @@
 	//Setup Consent for Matomo
 	var _paq = window._paq = window._paq || [];
 	_paq.push(['requireCookieConsent']);
+	{/literal}
+	{if $ExcludedQueryParams}_paq.push(["setExcludedQueryParams", {$ExcludedQueryParams nofilter}]);{/if}
 
+	{literal}
 	//Setup Consent for Google Analytics
 	window.dataLayer = window.dataLayer || [];
 	function gtag(){dataLayer.push(arguments);}

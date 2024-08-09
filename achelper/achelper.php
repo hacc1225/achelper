@@ -32,7 +32,9 @@ class ACHelper extends Module
         Configuration::updateValue('ACHelper_GA_URL_Passthrough', '') &&
         Configuration::updateValue('ACHelper_GA_Ads_Data_Redaction', '') &&
         Configuration::updateValue('ACHelper_TopLevelDomain', '') &&
-        Configuration::updateValue('ACHelper_lgcookieslawID', '');
+        Configuration::updateValue('ACHelper_lgcookieslawID', '') &&
+        Configuration::updateValue('ACHelper_Matomo_ExcludedQueryParams', '') &&
+        Configuration::updateValue('ACHelper_Matomo_ExcludedQueryParams_On', '');
     }
 
     public function uninstall()
@@ -42,6 +44,8 @@ class ACHelper extends Module
         Configuration::deleteByName('ACHelper_GA_Ads_Data_Redaction');
         Configuration::deleteByName('ACHelper_TopLevelDomain');
         Configuration::deleteByName('ACHelper_lgcookieslawID');
+        Configuration::deleteByName('ACHelper_Matomo_ExcludedQueryParams');
+        Configuration::deleteByName('ACHelper_Matomo_ExcludedQueryParams_On');
         return parent::uninstall();
     }
 
@@ -119,7 +123,22 @@ class ACHelper extends Module
                         'label' => $this->l('lgcookieslaw plugin purpose ID'),
                         'class' => 't',
                         'name' => 'ACHelper_lgcookieslawID'
-                    )
+                    ),
+                    array(
+                        'type' => 'checkbox',
+                        'name' => 'ACHelper',
+                        'class' => 't',
+                        'values' => array(
+                            'query' => array(
+                                array(
+                                    'id_option' => 'Matomo_ExcludedQueryParams_On',
+                                    'name' => $this->l('Exclude some Query Params in Matomo'),
+                                ),
+                            ),
+                            'id' => 'id_option',
+                            'name' => 'name'
+                        ),
+                    ),
                 ),
                 'submit' => array(
                     'title' => $this->l('Save')
@@ -145,6 +164,19 @@ class ACHelper extends Module
         $helper->fields_value['ACHelper_GA_URL_Passthrough'] = Configuration::get('ACHelper_GA_URL_Passthrough');
         $helper->fields_value['ACHelper_GA_Ads_Data_Redaction'] = Configuration::get('ACHelper_GA_Ads_Data_Redaction');
         $helper->fields_value['ACHelper_lgcookieslawID'] = Configuration::get('ACHelper_lgcookieslawID');
+        $MatomoExcludedQueryParamsOn = Configuration::get('ACHelper_Matomo_ExcludedQueryParams_On');
+        $helper->fields_value['ACHelper_Matomo_ExcludedQueryParams_On'] = $MatomoExcludedQueryParamsOn;
+        if ($MatomoExcludedQueryParamsOn == 'on') {
+            $ExcludedQueryParamsForm = array(
+                'type' => 'textarea',
+                'label' => $this->l('Excluded Query Params'),
+                'class' => 't',
+                'desc' => $this->l('One parameter per line.'),
+                'name' => 'ACHelper_Matomo_ExcludedQueryParams'
+            );
+            $fields_form['form']['input'][] = $ExcludedQueryParamsForm;
+            $helper->fields_value['ACHelper_Matomo_ExcludedQueryParams'] = Configuration::get('ACHelper_Matomo_ExcludedQueryParams');
+        }
         return $helper->generateForm(array($fields_form));
     }
 
@@ -155,6 +187,11 @@ class ACHelper extends Module
         Configuration::updateValue('ACHelper_GA_URL_Passthrough', Tools::getValue('ACHelper_GA_URL_Passthrough'));
         Configuration::updateValue('ACHelper_GA_Ads_Data_Redaction', Tools::getValue('ACHelper_GA_Ads_Data_Redaction'));
         Configuration::updateValue('ACHelper_lgcookieslawID', Tools::getValue('ACHelper_lgcookieslawID'));
+        $MatomoExcludedQueryParamsOn = Tools::getValue('ACHelper_Matomo_ExcludedQueryParams_On');
+        Configuration::updateValue('ACHelper_Matomo_ExcludedQueryParams_On', $MatomoExcludedQueryParamsOn);
+        if ($MatomoExcludedQueryParamsOn == 'on') {
+            Configuration::updateValue('ACHelper_Matomo_ExcludedQueryParams', Tools::getValue('ACHelper_Matomo_ExcludedQueryParams'));
+        }
     }
 
     public function hookDisplayHeader($params)
@@ -166,6 +203,17 @@ class ACHelper extends Module
                 'GA_URL_Passthrough' => Configuration::get('ACHelper_GA_URL_Passthrough') == 'on',
                 'GA_Ads_Data_Redaction' => Configuration::get('ACHelper_GA_Ads_Data_Redaction') == 'on',
             ));
+
+            if (Configuration::get('ACHelper_Matomo_ExcludedQueryParams_On') == 'on') {
+                $ExcludedQueryParamsArray = preg_split('/\r\n|\r|\n/', Configuration::get('ACHelper_Matomo_ExcludedQueryParams'));
+                if ($ExcludedQueryParamsArray) {
+                    $ExcludedQueryParamsArray = array_map('trim', $ExcludedQueryParamsArray);
+                    $jsonString = json_encode($ExcludedQueryParamsArray);
+                    if ($jsonString) {
+                        $this->context->smarty->assign('ExcludedQueryParams', $jsonString);
+                    }
+                }
+            }
         }
         return $this->context->smarty->fetch($templateFile, $cacheId);
     }
