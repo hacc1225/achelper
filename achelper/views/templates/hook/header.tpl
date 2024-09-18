@@ -4,7 +4,7 @@
 	var _paq = window._paq = window._paq || [];
 	_paq.push(['requireCookieConsent']);
 	{/literal}
-	{if $ExcludedQueryParams}_paq.push(["setExcludedQueryParams", {$ExcludedQueryParams nofilter}]);{/if}
+	{if isset($ExcludedQueryParams)}_paq.push(["setExcludedQueryParams", {$ExcludedQueryParams nofilter}]);{/if}
 
 	{literal}
 	//Setup Consent for Google Analytics
