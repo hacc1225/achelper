@@ -45,6 +45,7 @@
 			}
 			else {
 				_paq.push(['forgetCookieConsentGiven']);
+				window.clarity('consent', false);
 				ACHelperDeleteCookie('_ga_{$GMeasureID}', '.{$TopLevelDomain}', '/');
 				ACHelperDeleteCookie('_ga', '.{$TopLevelDomain}', '/');
 			}

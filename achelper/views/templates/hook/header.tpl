@@ -1,4 +1,13 @@
 <script type="text/javascript">
+	//Setup Microsoft Clarity
+	{literal}
+	(function(c,l,a,r,i,t,y){
+		c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};
+		t=l.createElement(r);t.async=1;t.src="https://www.clarity.ms/tag/"+i;
+		y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y);
+	{/literal}
+	})(window, document, "clarity", "script", "{$ClarityID}");
+
 	{literal}
 	//Setup Consent for Matomo
 	var _paq = window._paq = window._paq || [];
@@ -25,12 +34,19 @@
 		//Activate Matomo with cookies
 		_paq.push(['rememberCookieConsentGiven']);
 
-		//Activate Google Analytics
+		//Activate Google Analytics with cookies
 		gtag('consent', 'update', {
 			'ad_user_data': 'granted',
 			'ad_personalization': 'granted',
 			'ad_storage': 'granted',
 			'analytics_storage': 'granted'
 		});
+		
+		//Activate Microsoft Clarity with cookies
+		window.clarity('consentv2',{
+			ad_storage: "granted",
+			analytics_storage: "granted"
+		});
+		window.clarity('consent');
 	}
 </script>

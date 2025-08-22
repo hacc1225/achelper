@@ -9,7 +9,7 @@ class ACHelper extends Module
     {
         $this->name = 'achelper';
         $this->tab = 'front_office_features';
-        $this->version = '1.0.0';
+        $this->version = '1.1.0';
         $this->author = 'Hacc';
         $this->need_instance = 0;
         $this->ps_versions_compliancy = array('min' => '1.6', 'max' => _PS_VERSION_);
@@ -28,6 +28,7 @@ class ACHelper extends Module
         return parent::install() &&
         $this->registerHook('displayHeader') &&
         $this->registerHook('displayBeforeBodyClosingTag') &&
+        Configuration::updateValue('ACHelper_ClarityID', '') &&
         Configuration::updateValue('ACHelper_GMeasureID', '') &&
         Configuration::updateValue('ACHelper_GA_URL_Passthrough', '') &&
         Configuration::updateValue('ACHelper_GA_Ads_Data_Redaction', '') &&
@@ -39,6 +40,7 @@ class ACHelper extends Module
 
     public function uninstall()
     {
+        Configuration::deleteByName('ACHelper_ClarityID');
         Configuration::deleteByName('ACHelper_GMeasureID');
         Configuration::deleteByName('ACHelper_GA_URL_Passthrough');
         Configuration::deleteByName('ACHelper_GA_Ads_Data_Redaction');
@@ -74,6 +76,12 @@ class ACHelper extends Module
                         'class' => 't',
                         'desc' => $this->l('We need those things to delete cookies for our user.'),
                         'name' => 'ACHelper_TopLevelDomain'
+                    ),
+                    array(
+                        'type' => 'text',
+                        'label' => $this->l('Microsoft Clarity ID'),
+                        'class' => 't',
+                        'name' => 'ACHelper_ClarityID'
                     ),
                     array(
                         'type' => 'text',
@@ -160,6 +168,7 @@ class ACHelper extends Module
         $helper->currentIndex = $this->context->link->getAdminLink('AdminModules', false).'&configure='.$this->name.'&tab_module='.$this->tab.'&module_name='.$this->name;
         $helper->token = Tools::getAdminTokenLite('AdminModules');
         $helper->fields_value['ACHelper_TopLevelDomain'] = Configuration::get('ACHelper_TopLevelDomain');
+        $helper->fields_value['ACHelper_ClarityID'] = Configuration::get('ACHelper_ClarityID');
         $helper->fields_value['ACHelper_GMeasureID'] = Configuration::get('ACHelper_GMeasureID');
         $helper->fields_value['ACHelper_GA_URL_Passthrough'] = Configuration::get('ACHelper_GA_URL_Passthrough');
         $helper->fields_value['ACHelper_GA_Ads_Data_Redaction'] = Configuration::get('ACHelper_GA_Ads_Data_Redaction');
@@ -183,6 +192,7 @@ class ACHelper extends Module
     protected function postProcess()
     {
         Configuration::updateValue('ACHelper_TopLevelDomain', Tools::getValue('ACHelper_TopLevelDomain'));
+        Configuration::updateValue('ACHelper_ClarityID', Tools::getValue('ACHelper_ClarityID'));
         Configuration::updateValue('ACHelper_GMeasureID', Tools::getValue('ACHelper_GMeasureID'));
         Configuration::updateValue('ACHelper_GA_URL_Passthrough', Tools::getValue('ACHelper_GA_URL_Passthrough'));
         Configuration::updateValue('ACHelper_GA_Ads_Data_Redaction', Tools::getValue('ACHelper_GA_Ads_Data_Redaction'));
@@ -200,6 +210,7 @@ class ACHelper extends Module
         $cacheId = $this->getCacheId();
         if (!$this->isCached($templateFile, $cacheId)) {
             $this->context->smarty->assign(array(
+                'ClarityID' => Configuration::get('ACHelper_ClarityID'),
                 'GA_URL_Passthrough' => Configuration::get('ACHelper_GA_URL_Passthrough') == 'on',
                 'GA_Ads_Data_Redaction' => Configuration::get('ACHelper_GA_Ads_Data_Redaction') == 'on',
             ));
